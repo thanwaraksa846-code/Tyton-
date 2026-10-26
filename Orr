@@ -1,0 +1,66 @@
+-- ดึง Services ที่ต้องใช้
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+-- Remote สำหรับปั๊มพลัง
+local remote = ReplicatedStorage:WaitForChild("Packages")
+	:WaitForChild("_Index")
+	:WaitForChild("sleitnick_knit@1.5.1")
+	:WaitForChild("knit")
+	:WaitForChild("Services")
+	:WaitForChild("TrainService")
+	:WaitForChild("RE")
+	:WaitForChild("RunTrain")
+
+local args = {"Treadmill_1_1"}
+local running = false
+
+-- สร้าง ScreenGui ใน PlayerGui (ไม่ติด Error CoreGui แน่นอน)
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "BoatRaceAutoTrain"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = PlayerGui
+
+-- ปุ่มกด เปิด/ปิด (ลากย้ายได้)
+local ToggleButton = Instance.new("TextButton")
+ToggleButton.Name = "ToggleButton"
+ToggleButton.Parent = ScreenGui
+ToggleButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+ToggleButton.BorderColor3 = Color3.fromRGB(0, 255, 150)
+ToggleButton.BorderSizePixel = 2
+ToggleButton.Position = UDim2.new(0.5, -90, 0.15, 0)
+ToggleButton.Size = UDim2.new(0, 180, 0, 45)
+ToggleButton.Font = Enum.Font.SourceSansBold
+ToggleButton.Text = "AUTO TRAIN: OFF"
+ToggleButton.TextColor3 = Color3.fromRGB(255, 60, 60)
+ToggleButton.TextSize = 16
+ToggleButton.Active = true
+ToggleButton.Draggable = true
+
+-- ระบบกดเปิด/ปิดการปั๊มพลัง
+ToggleButton.MouseButton1Click:Connect(function()
+	running = not running
+	
+	if running then
+		ToggleButton.Text = "AUTO TRAIN: ON"
+		ToggleButton.TextColor3 = Color3.fromRGB(60, 255, 60)
+		
+		task.spawn(function()
+			local counter = 0
+			while running do
+				counter = counter + 1
+				remote:FireServer(unpack(args))
+				
+				-- ยิง 100 รอบแล้วพักเฟรม เพื่อความเร็วสูงสุดและไม่กระตุก
+				if counter % 100 == 0 then
+					task.wait()
+				end
+			end
+		end)
+	else
+		ToggleButton.Text = "AUTO TRAIN: OFF"
+		ToggleButton.TextColor3 = Color3.fromRGB(255, 60, 60)
+	end
+end)
